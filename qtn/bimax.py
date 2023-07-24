@@ -185,6 +185,21 @@ class BiMax(object):
         shot_noise = 2 * a * echarge ** 2 * mp.fabs(za) ** 2 * ne
         return [mp.fabs((zr + za) / zr) ** 2, shot_noise]
 
+    def proton_old(self, wc, l, tep, tc, vsw):
+        """
+        proton noise (stolen from an old commit by AS)
+        wc: w/w_c, where w_c is the core electron plasma frequency.
+        l: l_ant/l_dc, where l_ant is antenna length
+        l_dc: core electron debye length.
+        tep: T_e/T_p
+        tc: core electron temperature
+        vsw: solar wind speed.
+        """
+        vtc = np.sqrt(2 * boltzmann * tc/ emass)
+        omega = wc * vtc/vsw /np.sqrt(2.)
+        integrand = lambda y: y * fperp(y * l)/ (y**2 + 1 + omega**2) / (y**2 + 1 + omega**2 + tep)
+        return scint.quad(integrand, 0, np.inf, epsrel = 1.e-5)[0] * boltzmann * tc/ (2 * np.pi * permittivity * vsw)
+
     def proton(self, f, ne, n, t, tp, tc, vsw):
         """
         proton noise.
